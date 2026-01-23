@@ -1,0 +1,34 @@
+# Databricks Development Rules
+
+## Environment Setup
+- Always use Databricks Connect for local development
+- Ensure `.databrickscfg` includes host, token, and cluster_id
+- Use virtual environments for dependency isolation
+
+## Code Structure
+- Follow PySpark best practices
+- Use Delta Lake for all table operations
+- Implement proper error handling and logging
+- Write modular, reusable functions
+
+## Databricks-Specific Patterns
+- Use `spark.read.table()` for reading tables
+- Prefer Delta Lake operations over direct file operations
+- Use Unity Catalog for table management when available
+- Implement proper schema evolution strategies
+
+## Testing
+- Test locally with Databricks Connect before deploying
+- Use sample datasets for development (e.g., `samples.nyctaxi.trips`)
+- Implement unit tests for transformation logic
+
+## Security
+- Never commit tokens or credentials to version control
+- Use Databricks secrets for sensitive information
+- Follow principle of least privilege for cluster access
+
+## Performance
+- Use appropriate cluster sizing
+- Leverage caching for frequently accessed data
+- Optimize partition strategies for large datasets
+- Use broadcast joins for small dimension tables

@@ -1,0 +1,61 @@
+# This is a Databricks asset bundle definition for university_databricks_overview.
+# The Databricks extension requires databricks.yml configuration file.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+
+bundle:
+  name: university_databricks_overview
+
+# Variables for workspace-specific configurations
+variables:
+  # Workspace root path (can be overridden per target)
+  workspace_root_path:
+    default: /Workspace/Users/leigh.robertson@databricks.com/university_databricks_overview
+  
+  # Cluster IDs (workspace-specific)
+  # These will be overridden per target
+  primary_cluster_id:
+    default: "0709-132523-cnhxf2p6"
+
+workspace:
+  root_path: ${var.workspace_root_path}
+
+targets:
+  field_eng:
+    mode: development
+    default: true
+    workspace:
+      host: https://e2-demo-field-eng.cloud.databricks.com
+      profile: field_eng
+    variables:
+      workspace_root_path: /Workspace/Users/leigh.robertson@databricks.com/university_databricks_overview
+      primary_cluster_id: "0709-132523-cnhxf2p6"
+
+  fevm_ws:
+    mode: development
+    workspace:
+      host: https://fevm-leigh-robertson-demo-ws.cloud.databricks.com
+      profile: fevm_ws
+    variables:
+      workspace_root_path: /Workspace/Users/leigh.robertson@databricks.com/university_databricks_overview
+      primary_cluster_id: "0113-012705-3e9ykmog"
+
+resources:
+  # Jobs will be added here as you create your pipelines
+  # Example structure:
+  #
+  # jobs:
+  #   worldcup_data_ingestion:
+  #     name: "worldcup_data_ingestion"
+  #     email_notifications:
+  #       on_failure:
+  #         - leigh.robertson@databricks.com
+  #     tasks:
+  #       - task_key: "ingest_worldcup_data"
+  #         existing_cluster_id: ${var.primary_cluster_id}
+  #         spark_python_task:
+  #           python_file: "src/pipelines/ingest_worldcup_data.py"
+  #           parameters:
+  #             - "--data-path"
+  #             - "/Workspace/Users/leigh.robertson@databricks.com/university_databricks_overview/data"
+  jobs: {}
+

@@ -1,0 +1,40 @@
+# Project Structure Guidelines
+
+## Directory Organization
+```
+project/
+├── src/                    # Source code
+│   ├── pipelines/         # Data pipeline definitions
+│   ├── transformations/   # Data transformation logic
+│   └── utils/             # Utility functions
+├── data/              # where data will be stored
+├── tests/                 # Test files
+├── docs/                  # Documentation
+├── .cursor/rules/         # AI assistant rules
+├── databricks.yml         # Databricks asset bundle config
+├── requirements.txt       # Python dependencies
+└── README.md             # Project documentation
+```
+
+## File Naming Conventions
+- Use snake_case for Python files: `data_processing.py`
+- Use descriptive names that indicate purpose
+- Prefix notebooks with numbers for ordering: `01_ingest.py`, `02_transform.py`
+
+## Code Organization
+- Keep related functionality together
+- Separate concerns (ingestion, transformation, serving)
+- Use clear module boundaries
+- Document public APIs
+
+## Configuration Management
+- Use YAML for configuration files
+- Separate configs by environment (dev, staging, prod)
+- Store configs in version control (except secrets)
+- Use Databricks Asset Bundles for deployment
+
+## Documentation
+- Include README.md in each major directory
+- Document complex logic with inline comments
+- Maintain up-to-date API documentation
+- Provide usage examples

@@ -1,0 +1,16 @@
+# Databricks Development Dependencies
+databricks-connect>=14.0.0
+pyspark>=3.5.0
+delta-spark>=3.0.0
+
+# Development Tools
+pytest>=7.4.0
+pytest-cov>=4.1.0
+black>=23.0.0
+flake8>=6.1.0
+mypy>=1.5.0
+
+# Utilities
+python-dotenv>=1.0.0
+pyyaml>=6.0.0
+
