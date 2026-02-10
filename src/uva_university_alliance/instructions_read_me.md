@@ -29,7 +29,7 @@ This guide walks you through setting up the World Cup data demo for the **Databr
   ```
 - This gives you access to all notebooks, SQL files, and CSV datasets on your machine.
 
-### Git folder in Databricks (optional)
+### Git folder in Databricks 
 - In your Databricks workspace, go to **Repos** and create a new repo.
 - Connect it to: `https://github.com/leighrobertson512/university_databricks_overview`
 - Use this to sync notebooks and run directly from Databricks.
