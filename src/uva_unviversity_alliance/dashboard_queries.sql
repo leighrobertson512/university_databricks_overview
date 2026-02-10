@@ -1,7 +1,9 @@
 -- ============================================================================
 -- World Cup Dashboard Queries
 -- ============================================================================
--- This file contains SQL queries for building a comprehensive World Cup dashboard
+-- Use these queries after completing the setup (Steps 1-5 in instructions_read_me.md).
+-- Run in Databricks SQL or a notebook to build dashboards and reports.
+--
 -- Catalog: university_learning
 -- Schema: world_cup
 -- ============================================================================
