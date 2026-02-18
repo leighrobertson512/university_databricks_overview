@@ -7,9 +7,6 @@ This repository is used for the **Databricks University Alliance Program** and c
 Code examples, notebooks, and utilities are in **`src/`**:
 
 - `src/uva_university_alliance/` – University Alliance demo notebooks (setup, load data, relationships) and instructions
-- `src/pipelines/` – Data pipeline definitions
-- `src/transformations/` – Data transformation logic
-- `src/utils/` – Shared utility functions
 
 ## Where the data lives
 
