@@ -1,0 +1,1390 @@
+{
+  "datasets": [
+    {
+      "name": "bc2381e2",
+      "displayName": "Overall Tournament Statistics",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 1. TOURNAMENT OVERVIEW & KPI METRICS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Overall Tournament Statistics\n",
+        "SELECT \n",
+        "    COUNT(DISTINCT tournaments.tournament_id) AS total_tournaments,\n",
+        "    MIN(tournaments.year) AS first_tournament_year,\n",
+        "    MAX(tournaments.year) AS latest_tournament_year,\n",
+        "    COUNT(DISTINCT qualified_teams.team_id) AS total_unique_teams,\n",
+        "    COUNT(DISTINCT squads.player_id) AS total_unique_players,\n",
+        "    COUNT(DISTINCT matches.match_id) AS total_matches,\n",
+        "    SUM(matches.home_team_score + matches.away_team_score) AS total_goals_scored,\n",
+        "    ROUND(AVG(matches.home_team_score + matches.away_team_score), 2) AS avg_goals_per_match\n",
+        "FROM university_learning.world_cup.tournaments tournaments\n",
+        "LEFT JOIN university_learning.world_cup.matches matches ON tournaments.tournament_id = matches.tournament_id\n",
+        "LEFT JOIN university_learning.world_cup.qualified_teams qualified_teams ON tournaments.tournament_id = qualified_teams.tournament_id\n",
+        "LEFT JOIN university_learning.world_cup.squads squads ON tournaments.tournament_id = squads.tournament_id;"
+      ],
+      "catalog": "main",
+      "schema": "___demo_chris_thompson"
+    },
+    {
+      "name": "83b428aa",
+      "displayName": "Tournament Insights by Year and Host Country",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 1. TOURNAMENT OVERVIEW & KPI METRICS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Tournament Summary by Year\n",
+        "SELECT \n",
+        "    tournaments.tournament_id,\n",
+        "    tournaments.tournament_name,\n",
+        "    tournaments.year,\n",
+        "    tournaments.start_date,\n",
+        "    tournaments.end_date,\n",
+        "    tournaments.host_country,\n",
+        "    tournaments.winner,\n",
+        "    tournaments.count_teams,\n",
+        "    COUNT(DISTINCT matches.match_id) AS total_matches,\n",
+        "    SUM(matches.home_team_score + matches.away_team_score) AS total_goals,\n",
+        "    ROUND(AVG(matches.home_team_score + matches.away_team_score), 2) AS avg_goals_per_match\n",
+        "FROM university_learning.world_cup.tournaments tournaments\n",
+        "LEFT JOIN university_learning.world_cup.matches matches ON tournaments.tournament_id = matches.tournament_id\n",
+        "GROUP BY tournaments.tournament_id, tournaments.tournament_name, tournaments.year, tournaments.start_date, tournaments.end_date, tournaments.host_country, tournaments.winner, tournaments.count_teams\n",
+        "ORDER BY tournaments.year DESC;"
+      ]
+    },
+    {
+      "name": "47bcd82b",
+      "displayName": "Top Players Goal Achievements Summary",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 2. TOP SCORING PLAYERS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Top 20 All-Time Goal Scorers\n",
+        "SELECT \n",
+        "    players.player_id,\n",
+        "    players.family_name,\n",
+        "    players.given_name,\n",
+        "    COUNT(DISTINCT goals.goal_id) AS total_goals,\n",
+        "    COUNT(DISTINCT goals.tournament_id) AS tournaments_played,\n",
+        "    COUNT(DISTINCT goals.match_id) AS matches_played,\n",
+        "    SUM(CASE WHEN goals.own_goal = 1 THEN 1 ELSE 0 END) AS own_goals,\n",
+        "    SUM(CASE WHEN goals.penalty = 1 THEN 1 ELSE 0 END) AS penalty_goals,\n",
+        "    COUNT(DISTINCT goals.team_id) AS teams_represented\n",
+        "FROM university_learning.world_cup.players players\n",
+        "INNER JOIN university_learning.world_cup.goals goals ON players.player_id = goals.player_id\n",
+        "WHERE goals.own_goal = 0 OR goals.own_goal IS NULL\n",
+        "GROUP BY players.player_id, players.family_name, players.given_name\n",
+        "ORDER BY total_goals DESC\n",
+        "LIMIT 20;"
+      ]
+    },
+    {
+      "name": "a04eda21",
+      "displayName": "Team Achievement Overview",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 3. TEAM PERFORMANCE METRICS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- All-Time Team Performance Summary\n",
+        "SELECT \n",
+        "    teams.team_id,\n",
+        "    teams.team_name,\n",
+        "    teams.team_code,\n",
+        "    confederations.confederation_name,\n",
+        "    COUNT(DISTINCT qualified_teams.tournament_id) AS tournaments_qualified,\n",
+        "    COUNT(DISTINCT team_appearances.match_id) AS total_matches,\n",
+        "    SUM(team_appearances.win) AS total_wins,\n",
+        "    SUM(team_appearances.draw) AS total_draws,\n",
+        "    SUM(team_appearances.lose) AS total_losses,\n",
+        "    SUM(team_appearances.goals_for) AS total_goals_for,\n",
+        "    SUM(team_appearances.goals_against) AS total_goals_against,\n",
+        "    SUM(team_appearances.goals_for) - SUM(team_appearances.goals_against) AS goal_difference,\n",
+        "    ROUND(SUM(team_appearances.win) * 3.0 + SUM(team_appearances.draw), 2) AS total_points,\n",
+        "    ROUND(AVG(team_appearances.goals_for), 2) AS avg_goals_for_per_match,\n",
+        "    ROUND(AVG(team_appearances.goals_against), 2) AS avg_goals_against_per_match\n",
+        "FROM university_learning.world_cup.teams teams\n",
+        "LEFT JOIN university_learning.world_cup.confederations confederations ON teams.confederation_id = confederations.confederation_id\n",
+        "LEFT JOIN university_learning.world_cup.qualified_teams qualified_teams ON teams.team_id = qualified_teams.team_id\n",
+        "LEFT JOIN university_learning.world_cup.team_appearances team_appearances ON teams.team_id = team_appearances.team_id\n",
+        "GROUP BY teams.team_id, teams.team_name, teams.team_code, confederations.confederation_name\n",
+        "HAVING COUNT(DISTINCT qualified_teams.tournament_id) > 0\n",
+        "ORDER BY total_points DESC, goal_difference DESC\n",
+        "LIMIT 50;"
+      ]
+    },
+    {
+      "name": "ff8c8d21",
+      "displayName": "Tournament Team Performance Insights",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 3. TEAM PERFORMANCE METRICS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Team Performance by Tournament\n",
+        "SELECT \n",
+        "    tournaments.tournament_name,\n",
+        "    tournaments.year,\n",
+        "    tournament_standings.team_name,\n",
+        "    tournament_standings.team_code,\n",
+        "    tournament_standings.position AS final_position,\n",
+        "    COUNT(DISTINCT team_appearances.match_id) AS matches_played,\n",
+        "    SUM(team_appearances.win) AS wins,\n",
+        "    SUM(team_appearances.draw) AS draws,\n",
+        "    SUM(team_appearances.lose) AS losses,\n",
+        "    SUM(team_appearances.goals_for) AS goals_for,\n",
+        "    SUM(team_appearances.goals_against) AS goals_against,\n",
+        "    SUM(team_appearances.goals_for) - SUM(team_appearances.goals_against) AS goal_difference\n",
+        "FROM university_learning.world_cup.tournament_standings tournament_standings\n",
+        "INNER JOIN university_learning.world_cup.tournaments tournaments ON tournament_standings.tournament_id = tournaments.tournament_id\n",
+        "LEFT JOIN university_learning.world_cup.team_appearances team_appearances ON tournament_standings.tournament_id = team_appearances.tournament_id AND tournament_standings.team_id = team_appearances.team_id\n",
+        "GROUP BY tournaments.tournament_name, tournaments.year, tournament_standings.team_name, tournament_standings.team_code, tournament_standings.position\n",
+        "ORDER BY tournaments.year DESC, tournament_standings.position;\n"
+      ]
+    },
+    {
+      "name": "dd6b4d19",
+      "displayName": "Epic High-Scoring Showdowns in World Cup History",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 4. MATCH STATISTICS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- High-Scoring Matches\n",
+        "SELECT \n",
+        "    tournaments.tournament_name,\n",
+        "    tournaments.year,\n",
+        "    matches.match_name,\n",
+        "    matches.match_date,\n",
+        "    matches.stage_name,\n",
+        "    matches.home_team_name,\n",
+        "    matches.away_team_name,\n",
+        "    matches.home_team_score,\n",
+        "    matches.away_team_score,\n",
+        "    matches.home_team_score + matches.away_team_score AS total_goals,\n",
+        "    matches.stadium_name,\n",
+        "    matches.city_name,\n",
+        "    matches.country_name\n",
+        "FROM university_learning.world_cup.matches matches\n",
+        "INNER JOIN university_learning.world_cup.tournaments tournaments ON matches.tournament_id = tournaments.tournament_id\n",
+        "WHERE matches.home_team_score + matches.away_team_score >= 6\n",
+        "ORDER BY total_goals DESC, tournaments.year DESC\n",
+        "LIMIT 50;"
+      ]
+    },
+    {
+      "name": "0c76ddbf",
+      "displayName": "Match Outcome Insights",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 4. MATCH STATISTICS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Match Statistics Summary\n",
+        "SELECT \n",
+        "    COUNT(*) AS total_matches,\n",
+        "    SUM(CASE WHEN matches.home_team_win = 1 THEN 1 ELSE 0 END) AS home_wins,\n",
+        "    SUM(CASE WHEN matches.away_team_win = 1 THEN 1 ELSE 0 END) AS away_wins,\n",
+        "    SUM(CASE WHEN matches.draw = 1 THEN 1 ELSE 0 END) AS draws,\n",
+        "    SUM(CASE WHEN matches.extra_time = 1 THEN 1 ELSE 0 END) AS matches_with_extra_time,\n",
+        "    SUM(CASE WHEN matches.penalty_shootout = 1 THEN 1 ELSE 0 END) AS penalty_shootouts,\n",
+        "    ROUND(AVG(matches.home_team_score + matches.away_team_score), 2) AS avg_goals_per_match,\n",
+        "    MAX(matches.home_team_score + matches.away_team_score) AS highest_scoring_match\n",
+        "FROM university_learning.world_cup.matches matches;"
+      ]
+    },
+    {
+      "name": "f41dc6d3",
+      "displayName": "Referee Performance Overview",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 5. REFEREE STATISTICS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Most Active Referees\n",
+        "SELECT \n",
+        "    referees.referee_id,\n",
+        "    referees.family_name,\n",
+        "    referees.given_name,\n",
+        "    referees.country_name,\n",
+        "    confederations.confederation_name,\n",
+        "    COUNT(DISTINCT referee_appearances.match_id) AS matches_refereed,\n",
+        "    COUNT(DISTINCT referee_appearances.tournament_id) AS tournaments_participated\n",
+        "FROM university_learning.world_cup.referees referees\n",
+        "LEFT JOIN university_learning.world_cup.confederations confederations ON referees.confederation_id = confederations.confederation_id\n",
+        "LEFT JOIN university_learning.world_cup.referee_appearances referee_appearances ON referees.referee_id = referee_appearances.referee_id\n",
+        "GROUP BY referees.referee_id, referees.family_name, referees.given_name, referees.country_name, confederations.confederation_name\n",
+        "ORDER BY matches_refereed DESC\n",
+        "LIMIT 30;"
+      ]
+    },
+    {
+      "name": "7671e20e",
+      "displayName": "Referee Appointments by Confederation Overview",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 5. REFEREE STATISTICS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Referee Appointments by Confederation\n",
+        "SELECT \n",
+        "    confederations.confederation_name,\n",
+        "    COUNT(DISTINCT referee_appearances.referee_id) AS unique_referees,\n",
+        "    COUNT(referee_appearances.match_id) AS total_match_appointments\n",
+        "FROM university_learning.world_cup.referee_appearances referee_appearances\n",
+        "INNER JOIN university_learning.world_cup.confederations confederations ON referee_appearances.confederation_id = confederations.confederation_id\n",
+        "GROUP BY confederations.confederation_name\n",
+        "ORDER BY total_match_appointments DESC;"
+      ]
+    },
+    {
+      "name": "2c627ca3",
+      "displayName": "Manager Performance Insights",
+      "queryLines": [
+        "\n",
+        "-- ============================================================================\n",
+        "-- 6. MANAGER STATISTICS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Most Successful Managers\n",
+        "SELECT \n",
+        "    managers.manager_id,\n",
+        "    managers.family_name,\n",
+        "    managers.given_name,\n",
+        "    managers.country_name,\n",
+        "    COUNT(DISTINCT manager_appearances.tournament_id) AS tournaments_managed,\n",
+        "    COUNT(DISTINCT manager_appearances.team_id) AS teams_managed,\n",
+        "    COUNT(DISTINCT manager_appearances.match_id) AS matches_managed,\n",
+        "    COUNT(DISTINCT CASE WHEN tournament_standings.position = 1 THEN tournament_standings.tournament_id END) AS championships_won\n",
+        "FROM university_learning.world_cup.managers managers\n",
+        "LEFT JOIN university_learning.world_cup.manager_appearances manager_appearances ON managers.manager_id = manager_appearances.manager_id\n",
+        "LEFT JOIN university_learning.world_cup.tournament_standings tournament_standings ON manager_appearances.tournament_id = tournament_standings.tournament_id AND manager_appearances.team_id = tournament_standings.team_id\n",
+        "GROUP BY managers.manager_id, managers.family_name, managers.given_name, managers.country_name\n",
+        "HAVING COUNT(DISTINCT manager_appearances.tournament_id) > 0\n",
+        "ORDER BY championships_won DESC, tournaments_managed DESC\n",
+        "LIMIT 30;"
+      ]
+    },
+    {
+      "name": "9b5f296e",
+      "displayName": "Manager Tournament Performance Overview",
+      "queryLines": [
+        "\n",
+        "-- ============================================================================\n",
+        "-- 6. MANAGER STATISTICS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Manager Performance by Tournament\n",
+        "SELECT \n",
+        "    tournaments.tournament_name,\n",
+        "    tournaments.year,\n",
+        "    managers.family_name || ', ' || managers.given_name AS manager_name,\n",
+        "    teams.team_name,\n",
+        "    tournament_standings.position AS final_position,\n",
+        "    COUNT(DISTINCT manager_appearances.match_id) AS matches_managed,\n",
+        "    SUM(CASE WHEN team_appearances.win = 1 THEN 1 ELSE 0 END) AS wins,\n",
+        "    SUM(CASE WHEN team_appearances.draw = 1 THEN 1 ELSE 0 END) AS draws,\n",
+        "    SUM(CASE WHEN team_appearances.lose = 1 THEN 1 ELSE 0 END) AS losses\n",
+        "FROM university_learning.world_cup.manager_appearances manager_appearances\n",
+        "INNER JOIN university_learning.world_cup.tournaments tournaments ON manager_appearances.tournament_id = tournaments.tournament_id\n",
+        "INNER JOIN university_learning.world_cup.managers managers ON manager_appearances.manager_id = managers.manager_id\n",
+        "INNER JOIN university_learning.world_cup.teams teams ON manager_appearances.team_id = teams.team_id\n",
+        "LEFT JOIN university_learning.world_cup.tournament_standings tournament_standings ON manager_appearances.tournament_id = tournament_standings.tournament_id AND manager_appearances.team_id = tournament_standings.team_id\n",
+        "LEFT JOIN university_learning.world_cup.team_appearances team_appearances ON manager_appearances.tournament_id = team_appearances.tournament_id AND manager_appearances.team_id = team_appearances.team_id AND manager_appearances.match_id = team_appearances.match_id\n",
+        "GROUP BY tournaments.tournament_name, tournaments.year, managers.family_name, managers.given_name, teams.team_name, tournament_standings.position\n",
+        "ORDER BY tournaments.year DESC, tournament_standings.position;"
+      ]
+    },
+    {
+      "name": "a4bcd414",
+      "displayName": "Tournament Stadiums and Match Counts Overview",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 7. STADIUM USAGE\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Stadiums by Tournament\n",
+        "SELECT \n",
+        "    tournaments.tournament_name,\n",
+        "    tournaments.year,\n",
+        "    stadiums.stadium_name,\n",
+        "    stadiums.city_name,\n",
+        "    stadiums.country_name,\n",
+        "    COUNT(matches.match_id) AS matches_hosted\n",
+        "FROM university_learning.world_cup.matches matches\n",
+        "INNER JOIN university_learning.world_cup.tournaments tournaments ON matches.tournament_id = tournaments.tournament_id\n",
+        "INNER JOIN university_learning.world_cup.stadiums stadiums ON matches.stadium_id = stadiums.stadium_id\n",
+        "GROUP BY tournaments.tournament_name, tournaments.year, stadiums.stadium_name, stadiums.city_name, stadiums.country_name\n",
+        "ORDER BY tournaments.year DESC, matches_hosted DESC;\n"
+      ]
+    },
+    {
+      "name": "c150f757",
+      "displayName": "Champion Awards Overview",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 8. AWARD WINNERS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Award Winners Summary\n",
+        "SELECT \n",
+        "    award_winners.tournament_name,\n",
+        "    tournaments.year,\n",
+        "    award_winners.award_name,\n",
+        "    award_winners.family_name || ', ' || award_winners.given_name AS player_name,\n",
+        "    award_winners.team_name,\n",
+        "    award_winners.shared\n",
+        "FROM university_learning.world_cup.award_winners award_winners\n",
+        "INNER JOIN university_learning.world_cup.tournaments tournaments ON award_winners.tournament_id = tournaments.tournament_id\n",
+        "ORDER BY tournaments.year DESC, award_winners.award_name;\n"
+      ]
+    },
+    {
+      "name": "04282a8a",
+      "displayName": "Tournament Goals and Match Trends Analysis",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 9. HISTORICAL TRENDS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Goals Per Tournament Trend\n",
+        "SELECT \n",
+        "    tournaments.year,\n",
+        "    tournaments.tournament_name,\n",
+        "    COUNT(DISTINCT matches.match_id) AS total_matches,\n",
+        "    SUM(matches.home_team_score + matches.away_team_score) AS total_goals,\n",
+        "    ROUND(AVG(matches.home_team_score + matches.away_team_score), 2) AS avg_goals_per_match,\n",
+        "    MAX(matches.home_team_score + matches.away_team_score) AS highest_scoring_match\n",
+        "FROM university_learning.world_cup.tournaments tournaments\n",
+        "INNER JOIN university_learning.world_cup.matches matches ON tournaments.tournament_id = matches.tournament_id\n",
+        "GROUP BY tournaments.year, tournaments.tournament_name\n",
+        "ORDER BY tournaments.year;"
+      ]
+    },
+    {
+      "name": "93da774e",
+      "displayName": "Tournament Trends - Team Participation",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 9. HISTORICAL TRENDS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Teams Participating Over Time\n",
+        "SELECT \n",
+        "    tournaments.year,\n",
+        "    tournaments.tournament_name,\n",
+        "    COUNT(DISTINCT qualified_teams.team_id) AS number_of_teams\n",
+        "FROM university_learning.world_cup.tournaments tournaments\n",
+        "INNER JOIN university_learning.world_cup.qualified_teams qualified_teams ON tournaments.tournament_id = qualified_teams.tournament_id\n",
+        "GROUP BY tournaments.year, tournaments.tournament_name\n",
+        "ORDER BY tournaments.year;"
+      ]
+    },
+    {
+      "name": "fbabe18f",
+      "displayName": "Confederation Team Performance Insights",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 10. CONFEDERATION PERFORMANCE\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Confederation Performance Summary\n",
+        "SELECT \n",
+        "    confederations.confederation_name,\n",
+        "    confederations.confederation_code,\n",
+        "    COUNT(DISTINCT teams.team_id) AS total_teams,\n",
+        "    COUNT(DISTINCT qualified_teams.tournament_id) AS tournaments_participated,\n",
+        "    COUNT(DISTINCT CASE WHEN tournament_standings.position = 1 THEN tournament_standings.tournament_id END) AS championships_won,\n",
+        "    COUNT(DISTINCT team_appearances.match_id) AS total_matches,\n",
+        "    SUM(team_appearances.win) AS total_wins,\n",
+        "    SUM(team_appearances.draw) AS total_draws,\n",
+        "    SUM(team_appearances.lose) AS total_losses,\n",
+        "    SUM(team_appearances.goals_for) AS total_goals_for,\n",
+        "    SUM(team_appearances.goals_against) AS total_goals_against\n",
+        "FROM university_learning.world_cup.confederations confederations\n",
+        "LEFT JOIN university_learning.world_cup.teams teams ON confederations.confederation_id = teams.confederation_id\n",
+        "LEFT JOIN university_learning.world_cup.qualified_teams qualified_teams ON teams.team_id = qualified_teams.team_id\n",
+        "LEFT JOIN university_learning.world_cup.tournament_standings tournament_standings ON teams.team_id = tournament_standings.team_id\n",
+        "LEFT JOIN university_learning.world_cup.team_appearances team_appearances ON teams.team_id = team_appearances.team_id\n",
+        "GROUP BY confederations.confederation_name, confederations.confederation_code\n",
+        "ORDER BY championships_won DESC, total_wins DESC;"
+      ]
+    },
+    {
+      "name": "2c91346e",
+      "displayName": "Player Performance Insights",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 11. PLAYER APPEARANCES & STATISTICS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Most Capped Players\n",
+        "SELECT \n",
+        "    players.player_id,\n",
+        "    players.family_name,\n",
+        "    players.given_name,\n",
+        "    COUNT(DISTINCT player_appearances.tournament_id) AS tournaments_played,\n",
+        "    COUNT(DISTINCT player_appearances.match_id) AS total_appearances,\n",
+        "    SUM(player_appearances.starter) AS starts,\n",
+        "    SUM(player_appearances.substitute) AS substitute_appearances,\n",
+        "    COUNT(DISTINCT player_appearances.team_id) AS teams_represented\n",
+        "FROM university_learning.world_cup.players players\n",
+        "INNER JOIN university_learning.world_cup.player_appearances player_appearances ON players.player_id = player_appearances.player_id\n",
+        "GROUP BY players.player_id, players.family_name, players.given_name\n",
+        "ORDER BY total_appearances DESC\n",
+        "LIMIT 50;\n"
+      ]
+    },
+    {
+      "name": "e8840caa",
+      "displayName": "Player Performance and Statistics Overview",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 11. PLAYER APPEARANCES & STATISTICS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Player Statistics by Tournament\n",
+        "SELECT \n",
+        "    tournaments.tournament_name,\n",
+        "    tournaments.year,\n",
+        "    players.family_name || ', ' || players.given_name AS player_name,\n",
+        "    teams.team_name,\n",
+        "    COUNT(DISTINCT player_appearances.match_id) AS appearances,\n",
+        "    SUM(player_appearances.starter) AS starts,\n",
+        "    COUNT(DISTINCT goals.goal_id) AS goals_scored,\n",
+        "    COUNT(DISTINCT bookings.booking_id) AS bookings\n",
+        "FROM university_learning.world_cup.player_appearances player_appearances\n",
+        "INNER JOIN university_learning.world_cup.tournaments tournaments ON player_appearances.tournament_id = tournaments.tournament_id\n",
+        "INNER JOIN university_learning.world_cup.players players ON player_appearances.player_id = players.player_id\n",
+        "INNER JOIN university_learning.world_cup.teams teams ON player_appearances.team_id = teams.team_id\n",
+        "LEFT JOIN university_learning.world_cup.goals goals ON player_appearances.tournament_id = goals.tournament_id AND player_appearances.match_id = goals.match_id AND player_appearances.player_id = goals.player_id AND (goals.own_goal = 0 OR goals.own_goal IS NULL)\n",
+        "LEFT JOIN university_learning.world_cup.bookings bookings ON player_appearances.tournament_id = bookings.tournament_id AND player_appearances.match_id = bookings.match_id AND player_appearances.player_id = bookings.player_id\n",
+        "GROUP BY tournaments.tournament_name, tournaments.year, players.family_name, players.given_name, teams.team_name\n",
+        "ORDER BY tournaments.year DESC, goals_scored DESC, appearances DESC;\n"
+      ]
+    },
+    {
+      "name": "ea08fe44",
+      "displayName": "World Cup Group Standings Insights",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 12. GROUP STAGE ANALYSIS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Group Stage Standings Summary\n",
+        "SELECT \n",
+        "    tournaments.tournament_name,\n",
+        "    tournaments.year,\n",
+        "    group_standings.group_name,\n",
+        "    group_standings.team_name,\n",
+        "    group_standings.position,\n",
+        "    group_standings.played,\n",
+        "    group_standings.wins,\n",
+        "    group_standings.draws,\n",
+        "    group_standings.losses,\n",
+        "    group_standings.goals_for,\n",
+        "    group_standings.goals_against,\n",
+        "    group_standings.goal_difference,\n",
+        "    group_standings.points,\n",
+        "    group_standings.advanced\n",
+        "FROM university_learning.world_cup.group_standings group_standings\n",
+        "INNER JOIN university_learning.world_cup.tournaments tournaments ON group_standings.tournament_id = tournaments.tournament_id\n",
+        "ORDER BY tournaments.year DESC, group_standings.group_name, group_standings.position;"
+      ]
+    },
+    {
+      "name": "787d5ea1",
+      "displayName": "World Cup Group Stage Insights",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 12. GROUP STAGE ANALYSIS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Group Stage Statistics\n",
+        "SELECT \n",
+        "    tournaments.tournament_name,\n",
+        "    tournaments.year,\n",
+        "    COUNT(DISTINCT group_standings.group_name) AS number_of_groups,\n",
+        "    COUNT(DISTINCT group_standings.team_id) AS teams_in_groups,\n",
+        "    ROUND(AVG(group_standings.points), 2) AS avg_points_per_team,\n",
+        "    ROUND(AVG(group_standings.goals_for), 2) AS avg_goals_for_per_team,\n",
+        "    ROUND(AVG(group_standings.goal_difference), 2) AS avg_goal_difference\n",
+        "FROM university_learning.world_cup.group_standings group_standings\n",
+        "INNER JOIN university_learning.world_cup.tournaments tournaments ON group_standings.tournament_id = tournaments.tournament_id\n",
+        "GROUP BY tournaments.tournament_name, tournaments.year\n",
+        "ORDER BY tournaments.year DESC;"
+      ]
+    },
+    {
+      "name": "0dfa8972",
+      "displayName": "Knockout Stage Match Insights",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 13. KNOCKOUT STAGE ANALYSIS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Knockout Stage Matches\n",
+        "SELECT \n",
+        "    tournaments.tournament_name,\n",
+        "    tournaments.year,\n",
+        "    matches.match_name,\n",
+        "    matches.stage_name,\n",
+        "    matches.match_date,\n",
+        "    matches.home_team_name,\n",
+        "    matches.away_team_name,\n",
+        "    matches.home_team_score,\n",
+        "    matches.away_team_score,\n",
+        "    CASE \n",
+        "        WHEN matches.home_team_win = 1 THEN matches.home_team_name\n",
+        "        WHEN matches.away_team_win = 1 THEN matches.away_team_name\n",
+        "        ELSE 'Draw'\n",
+        "    END AS winner,\n",
+        "    matches.extra_time,\n",
+        "    matches.penalty_shootout,\n",
+        "    matches.home_team_score_penalties,\n",
+        "    matches.away_team_score_penalties\n",
+        "FROM university_learning.world_cup.matches matches\n",
+        "INNER JOIN university_learning.world_cup.tournaments tournaments ON matches.tournament_id = tournaments.tournament_id\n",
+        "WHERE matches.knockout_stage = 1\n",
+        "ORDER BY tournaments.year DESC, \n",
+        "    CASE matches.stage_name\n",
+        "        WHEN 'Final' THEN 1\n",
+        "        WHEN 'Third place' THEN 2\n",
+        "        WHEN 'Semi-finals' THEN 3\n",
+        "        WHEN 'Quarter-finals' THEN 4\n",
+        "        WHEN 'Round of 16' THEN 5\n",
+        "        ELSE 6\n",
+        "    END,\n",
+        "    matches.match_date;"
+      ]
+    },
+    {
+      "name": "6496ce1b",
+      "displayName": "Penalty Performance Insights",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 13. KNOCKOUT STAGE ANALYSIS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Penalty Shootout Statistics\n",
+        "SELECT \n",
+        "    tournaments.tournament_name,\n",
+        "    tournaments.year,\n",
+        "    COUNT(DISTINCT penalty_kicks.match_id) AS penalty_shootouts,\n",
+        "    COUNT(DISTINCT penalty_kicks.player_id) AS players_taking_penalties,\n",
+        "    SUM(penalty_kicks.converted) AS penalties_converted,\n",
+        "    COUNT(penalty_kicks.penalty_kick_id) AS total_penalties_taken,\n",
+        "    ROUND(SUM(penalty_kicks.converted) * 100.0 / COUNT(penalty_kicks.penalty_kick_id), 2) AS conversion_rate_pct\n",
+        "FROM university_learning.world_cup.penalty_kicks penalty_kicks\n",
+        "INNER JOIN university_learning.world_cup.tournaments tournaments ON penalty_kicks.tournament_id = tournaments.tournament_id\n",
+        "GROUP BY tournaments.tournament_name, tournaments.year\n",
+        "ORDER BY tournaments.year DESC;"
+      ]
+    },
+    {
+      "name": "b9adbe7c",
+      "displayName": "Discipline Metrics for University Teams Performance",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 14. BOOKINGS & DISCIPLINE\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Team Discipline Statistics\n",
+        "SELECT \n",
+        "    teams.team_name,\n",
+        "    teams.team_code,\n",
+        "    COUNT(DISTINCT bookings.tournament_id) AS tournaments,\n",
+        "    COUNT(DISTINCT bookings.match_id) AS matches,\n",
+        "    SUM(bookings.yellow_card) AS total_yellow_cards,\n",
+        "    SUM(bookings.red_card) AS total_red_cards,\n",
+        "    SUM(bookings.second_yellow_card) AS second_yellow_cards,\n",
+        "    SUM(bookings.sending_off) AS total_sendings_off,\n",
+        "    ROUND(AVG(bookings.yellow_card + bookings.red_card), 2) AS avg_cards_per_match\n",
+        "FROM university_learning.world_cup.teams teams\n",
+        "INNER JOIN university_learning.world_cup.bookings bookings ON teams.team_id = bookings.team_id\n",
+        "GROUP BY teams.team_name, teams.team_code\n",
+        "ORDER BY total_yellow_cards + total_red_cards DESC\n",
+        "LIMIT 30;"
+      ]
+    },
+    {
+      "name": "8fd04f86",
+      "displayName": "Player Discipline and Booking Statistics Overview",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 14. BOOKINGS & DISCIPLINE\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Most Booked Players\n",
+        "SELECT \n",
+        "    players.family_name || ', ' || players.given_name AS player_name,\n",
+        "    COUNT(DISTINCT bookings.tournament_id) AS tournaments,\n",
+        "    COUNT(DISTINCT bookings.match_id) AS matches,\n",
+        "    SUM(bookings.yellow_card) AS yellow_cards,\n",
+        "    SUM(bookings.red_card) AS red_cards,\n",
+        "    SUM(bookings.second_yellow_card) AS second_yellow_cards,\n",
+        "    SUM(bookings.sending_off) AS sendings_off\n",
+        "FROM university_learning.world_cup.players players\n",
+        "INNER JOIN university_learning.world_cup.bookings bookings ON players.player_id = bookings.player_id\n",
+        "GROUP BY players.family_name, players.given_name\n",
+        "ORDER BY yellow_cards + red_cards DESC\n",
+        "LIMIT 30;"
+      ]
+    },
+    {
+      "name": "d1e214fb",
+      "displayName": "Substitution Trends in World Cup Tournaments",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 15. SUBSTITUTIONS ANALYSIS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Substitution Statistics by Tournament\n",
+        "SELECT \n",
+        "    tournaments.tournament_name,\n",
+        "    tournaments.year,\n",
+        "    COUNT(DISTINCT substitutions.match_id) AS matches_with_substitutions,\n",
+        "    COUNT(substitutions.substitution_id) AS total_substitutions,\n",
+        "    COUNT(DISTINCT substitutions.player_id) AS unique_players_substituted,\n",
+        "    COUNT(DISTINCT substitutions.team_id) AS teams_making_substitutions\n",
+        "FROM university_learning.world_cup.substitutions substitutions\n",
+        "INNER JOIN university_learning.world_cup.tournaments tournaments ON substitutions.tournament_id = tournaments.tournament_id\n",
+        "GROUP BY tournaments.tournament_name, tournaments.year\n",
+        "ORDER BY tournaments.year DESC;"
+      ]
+    },
+    {
+      "name": "31058b14",
+      "displayName": "Player Substitution Insights Analysis",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 15. SUBSTITUTIONS ANALYSIS\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Most Substituted Players\n",
+        "SELECT \n",
+        "    players.family_name || ', ' || players.given_name AS player_name,\n",
+        "    COUNT(DISTINCT substitutions.tournament_id) AS tournaments,\n",
+        "    SUM(substitutions.going_off) AS times_substituted_off,\n",
+        "    SUM(substitutions.coming_on) AS times_substituted_on\n",
+        "FROM university_learning.world_cup.players players\n",
+        "INNER JOIN university_learning.world_cup.substitutions substitutions ON players.player_id = substitutions.player_id\n",
+        "GROUP BY players.family_name, players.given_name\n",
+        "ORDER BY times_substituted_off + times_substituted_on DESC\n",
+        "LIMIT 30;"
+      ]
+    },
+    {
+      "name": "2a1e90da",
+      "displayName": "Host Nation Achievements in World Cup Tournaments",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 16. HOST COUNTRY PERFORMANCE\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Host Country Performance\n",
+        "SELECT \n",
+        "    tournaments.tournament_name,\n",
+        "    tournaments.year,\n",
+        "    host_countries.team_name AS host_country,\n",
+        "    host_countries.performance AS host_performance,\n",
+        "    tournament_standings.position AS final_position,\n",
+        "    COUNT(DISTINCT team_appearances.match_id) AS matches_played,\n",
+        "    SUM(team_appearances.win) AS wins,\n",
+        "    SUM(team_appearances.draw) AS draws,\n",
+        "    SUM(team_appearances.lose) AS losses\n",
+        "FROM university_learning.world_cup.host_countries host_countries\n",
+        "INNER JOIN university_learning.world_cup.tournaments tournaments ON host_countries.tournament_id = tournaments.tournament_id\n",
+        "LEFT JOIN university_learning.world_cup.tournament_standings tournament_standings ON host_countries.tournament_id = tournament_standings.tournament_id AND host_countries.team_id = tournament_standings.team_id\n",
+        "LEFT JOIN university_learning.world_cup.team_appearances team_appearances ON host_countries.tournament_id = team_appearances.tournament_id AND host_countries.team_id = team_appearances.team_id\n",
+        "GROUP BY tournaments.tournament_name, tournaments.year, host_countries.team_name, host_countries.performance, tournament_standings.position\n",
+        "ORDER BY tournaments.year DESC;"
+      ]
+    },
+    {
+      "name": "210fcc10",
+      "displayName": "Tournament Insights and Match Statistics Summary",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 17. RECENT TOURNAMENT DASHBOARD (Latest Tournament Focus)\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Latest Tournament Overview\n",
+        "SELECT \n",
+        "    tournaments.tournament_name,\n",
+        "    tournaments.year,\n",
+        "    tournaments.host_country,\n",
+        "    tournaments.winner,\n",
+        "    tournaments.count_teams,\n",
+        "    (SELECT COUNT(DISTINCT matches.match_id) FROM university_learning.world_cup.matches matches WHERE matches.tournament_id = tournaments.tournament_id) AS total_matches,\n",
+        "    (SELECT SUM(matches.home_team_score + matches.away_team_score) FROM university_learning.world_cup.matches matches WHERE matches.tournament_id = tournaments.tournament_id) AS total_goals,\n",
+        "    (SELECT ROUND(AVG(matches.home_team_score + matches.away_team_score), 2) FROM university_learning.world_cup.matches matches WHERE matches.tournament_id = tournaments.tournament_id) AS avg_goals_per_match\n",
+        "FROM university_learning.world_cup.tournaments tournaments\n",
+        "ORDER BY tournaments.year DESC\n",
+        "LIMIT 1;"
+      ]
+    },
+    {
+      "name": "92863954",
+      "displayName": "Top Players of Recent Tournament Highlights",
+      "queryLines": [
+        "-- ============================================================================\n",
+        "-- 17. RECENT TOURNAMENT DASHBOARD (Latest Tournament Focus)\n",
+        "-- ============================================================================\n",
+        "\n",
+        "-- Latest Tournament Top Scorers\n",
+        "SELECT \n",
+        "    players.family_name || ', ' || players.given_name AS player_name,\n",
+        "    teams.team_name,\n",
+        "    COUNT(goals.goal_id) AS goals_scored,\n",
+        "    SUM(CASE WHEN goals.penalty = 1 THEN 1 ELSE 0 END) AS penalty_goals\n",
+        "FROM university_learning.world_cup.goals goals\n",
+        "INNER JOIN university_learning.world_cup.tournaments tournaments ON goals.tournament_id = tournaments.tournament_id\n",
+        "INNER JOIN university_learning.world_cup.players players ON goals.player_id = players.player_id\n",
+        "INNER JOIN university_learning.world_cup.teams teams ON goals.team_id = teams.team_id\n",
+        "WHERE (goals.own_goal = 0 OR goals.own_goal IS NULL)\n",
+        "    AND tournaments.year = (SELECT MAX(tournaments.year) FROM university_learning.world_cup.tournaments tournaments)\n",
+        "GROUP BY players.family_name, players.given_name, teams.team_name\n",
+        "ORDER BY goals_scored DESC\n",
+        "LIMIT 10;\n",
+        "\n"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "c3c9e1dc",
+      "displayName": "FIFA World Cup Dashboard",
+      "layout": [
+        {
+          "widget": {
+            "name": "avg-goals-per-match",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "bc2381e2",
+                  "fields": [
+                    {
+                      "name": "avg(avg_goals_per_match)",
+                      "expression": "AVG(`avg_goals_per_match`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "style": {
+                "fontColor": {
+                  "light": "#000000"
+                }
+              },
+              "frame": {
+                "title": "Avg Goals Per Match",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(avg_goals_per_match)"
+                }
+              }
+            },
+            "specExtensions": {
+              "widgetBorderColor": {
+                "light": "#000000"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "all-time-top-scorers",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "47bcd82b",
+                  "fields": [
+                    {
+                      "name": "total_goals",
+                      "expression": "`total_goals`"
+                    },
+                    {
+                      "name": "family_name",
+                      "expression": "`family_name`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`given_name` IS NULL OR `given_name` NOT IN ('Gerd')"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "All‑Time Top Scorers",
+                "showTitle": true
+              },
+              "style": {
+                "fontColor": {
+                  "light": "#000000"
+                }
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "total_goals",
+                  "displayName": "Goals Scored",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "family_name",
+                  "displayName": "Last Name",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            },
+            "specExtensions": {
+              "widgetBorderColor": {
+                "light": "#000000"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 7,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "1cbab739",
+            "multilineTextboxSpec": {
+              "lines": [
+                "# <span style=\"font-size:36px;line-height:1.5\">FIFA World Cup Insights Dashboard </span>⚽\n",
+                "\n",
+                "**What is the FIFA World Cup?&#32;** The FIFA World Cup is the premier international soccer tournament held every four years to crown the world champion among senior men's and women's national teams. This dashboard surfaces World Cup insights, combining key KPIs (Avg Goals/Match, Penalty Conversion Rate, Teams Participating) with visuals for top scorers of all time across both men's and women's leagues, latest tournament leaders, and total world cup tournaments hosted by country."
+              ]
+            },
+            "specExtensions": {
+              "widgetBackgroundColor": {
+                "light": "#FFFFFF"
+              },
+              "widgetBorderColor": {
+                "light": "#000000"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 10,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "highest-goals-in-match",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "0c76ddbf",
+                  "fields": [
+                    {
+                      "name": "highest_scoring_match",
+                      "expression": "`highest_scoring_match`"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Most Goals in a Match",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "highest_scoring_match",
+                  "rowNumber": 0
+                }
+              }
+            },
+            "specExtensions": {
+              "widgetBorderColor": {
+                "light": "#000000"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 3,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "penalty-conversion-rate",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "6496ce1b",
+                  "fields": [
+                    {
+                      "name": "avg(conversion_rate_pct)",
+                      "expression": "AVG(`conversion_rate_pct`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "avg(conversion_rate_pct)"
+                }
+              },
+              "frame": {
+                "title": "Penalty Conversion Rate",
+                "showTitle": true
+              }
+            },
+            "specExtensions": {
+              "widgetBorderColor": {
+                "light": "#000000"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 5,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "teams-participating",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "93da774e",
+                  "fields": [
+                    {
+                      "name": "sum(year)",
+                      "expression": "SUM(`year`)"
+                    },
+                    {
+                      "name": "sum(number_of_teams)",
+                      "expression": "SUM(`number_of_teams`)"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`year` IN (2022)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "frame": {
+                "title": "Teams Participating",
+                "showTitle": true
+              },
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "sum(number_of_teams)"
+                },
+                "target": {
+                  "fieldName": "sum(year)"
+                }
+              }
+            },
+            "specExtensions": {
+              "widgetBorderColor": {
+                "light": "#000000"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "goals-scored-by-player",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "92863954",
+                  "fields": [
+                    {
+                      "name": "team_name",
+                      "expression": "`team_name`"
+                    },
+                    {
+                      "name": "goals_scored",
+                      "expression": "`goals_scored`"
+                    },
+                    {
+                      "name": "player_name",
+                      "expression": "`player_name`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`player_name` IS NULL OR `player_name` NOT IN ('Richarlison, not applicable')"
+                    }
+                  ],
+                  "disaggregated": true
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "frame": {
+                "title": "Goals Scored by Player in Last World Cup",
+                "showTitle": true
+              },
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "goals_scored",
+                  "displayName": "Goals Scored",
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                },
+                "y": {
+                  "fieldName": "player_name",
+                  "displayName": "Player",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "x-reversed"
+                    }
+                  }
+                },
+                "color": {
+                  "fieldName": "team_name",
+                  "legend": {
+                    "hideTitle": true
+                  },
+                  "scale": {
+                    "type": "categorical",
+                    "mappings": []
+                  }
+                },
+                "label": {
+                  "show": true
+                }
+              }
+            },
+            "specExtensions": {
+              "widgetBorderColor": {
+                "light": "#000000"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 3,
+            "width": 6,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "all-time-top-scorer-1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "47bcd82b",
+                  "fields": [
+                    {
+                      "name": "max(total_goals)",
+                      "expression": "MAX(`total_goals`)"
+                    },
+                    {
+                      "name": "family_name",
+                      "expression": "`family_name`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`given_name` IN ('Wen', 'Thomas', 'Sándor', 'Gerd', 'Grzegorz', 'Lionel', 'Helmut', 'Jürgen', 'Miroslav', 'Just')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "family_name"
+                },
+                "target": {
+                  "fieldName": "max(total_goals)"
+                }
+              },
+              "frame": {
+                "title": "All Time Men's Scorer",
+                "showTitle": true
+              }
+            },
+            "specExtensions": {
+              "widgetBorderColor": {
+                "light": "#000000"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 3,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "all-time-top-scorer-2",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "47bcd82b",
+                  "fields": [
+                    {
+                      "name": "max(total_goals)",
+                      "expression": "MAX(`total_goals`)"
+                    },
+                    {
+                      "name": "family_name",
+                      "expression": "`family_name`"
+                    }
+                  ],
+                  "filters": [
+                    {
+                      "expression": "`given_name` IN ('Abby', 'Bettina', 'Birgit', 'Carli', 'Kylian', 'Michelle', 'not applicable')"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "family_name"
+                },
+                "target": {
+                  "fieldName": "max(total_goals)"
+                }
+              },
+              "frame": {
+                "title": "All Time Women's Scorer",
+                "showTitle": true
+              }
+            },
+            "specExtensions": {
+              "widgetBorderColor": {
+                "light": "#000000"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 5,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "7c630faa",
+            "multilineTextboxSpec": {
+              "lines": [
+                "<p>&nbsp;</p>\n",
+                "\n",
+                "![](data:image/png;base64,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)"
+              ]
+            },
+            "specExtensions": {
+              "widgetBackgroundColor": {
+                "light": "#FFFFFF"
+              },
+              "widgetBorderColor": {
+                "light": "#000000"
+              }
+            }
+          },
+          "position": {
+            "x": 10,
+            "y": 0,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "tournaments-hosted-by-country",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "a4bcd414",
+                  "fields": [
+                    {
+                      "name": "count(*)",
+                      "expression": "COUNT(`*`)"
+                    },
+                    {
+                      "name": "country_name",
+                      "expression": "`country_name`"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "frame": {
+                "showTitle": true,
+                "title": "Tournaments Hosted By Country"
+              },
+              "widgetType": "choropleth-map",
+              "encodings": {
+                "color": {
+                  "fieldName": "count(*)",
+                  "legend": {
+                    "hide": true
+                  },
+                  "scale": {
+                    "type": "quantitative",
+                    "colorRamp": {
+                      "mode": "custom-sequential",
+                      "colors": {
+                        "start": "#EFF3FF",
+                        "end": "#005391"
+                      }
+                    }
+                  }
+                },
+                "region": {
+                  "regionType": "mapbox-v4-admin",
+                  "admin0": {
+                    "fieldName": "country_name",
+                    "type": "field",
+                    "geographicRole": "admin0-name"
+                  }
+                }
+              }
+            },
+            "specExtensions": {
+              "widgetBorderColor": {
+                "light": "#000000"
+              }
+            }
+          },
+          "position": {
+            "x": 6,
+            "y": 8,
+            "width": 6,
+            "height": 5
+          }
+        }
+      ],
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "canvasBackgroundColor": {
+        "light": "#F0FBFF",
+        "dark": "#1B1F23"
+      },
+      "widgetBackgroundColor": {
+        "light": "#FFFFFF",
+        "dark": "#2A2F35"
+      },
+      "widgetBorderColor": {
+        "light": "#D7E1E9",
+        "dark": "#3C444C"
+      },
+      "fontColor": {
+        "light": "#374151",
+        "dark": "#E4E9EE"
+      },
+      "selectionColor": {
+        "light": "#5FA8D3",
+        "dark": "#5FA8D3"
+      },
+      "visualizationColors": [
+        "#005391",
+        "#70BEE1",
+        "#89CCE7",
+        "#A1DAEC",
+        "#B3E6DC",
+        "#89C7A8",
+        "#6EAD80",
+        "#589F60",
+        "#478743",
+        "#356C2A"
+      ],
+      "widgetHeaderAlignment": "LEFT"
+    },
+    "applyModeEnabled": false
+  }
+}
