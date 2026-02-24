@@ -84,15 +84,16 @@ This guide walks you through setting up the World Cup data demo for the **Databr
 
 **File:** `dashboard_queries.sql`
 
-- Click on the file `04_demo_aibi_dashboard.lvdash.json` in Databricks. It will open as a dashboard view
-- Wait a minute or so for the underlying queries to run and the visualizations to populate
-- When the dashboard is up and running, you can click "Edit draft" to look under the hood at the data and dashboard tabs
-- We have already created the dashboard
-- The file includes sections for:
+- Click on the file `04_demo_aibi_dashboard.lvdash.json` in Databricks. It will open as a dashboard view.
+- Wait a minute or so for the underlying queries to run and the visualizations to populate.
+- When the dashboard is up and running, you can click "Edit draft" to look under the hood at the data and dashboard tabs.
+- In the Data section, you will see many, *many* SQL tables being generated. The only ones actively in use are those that are **bolded**. All of the other tables could be deleted with no harm to the dashboard, but I have kept them in case you would like to play around with any of the various statistics. 
+- The dashboard currently includes sections for:
   - Tournament overview and KPIs
   - Top scorers
   - Team performance
   - And more
+- We already got you started by creating this dashboard, but feel free to add/change/clone and try your hand yourself!
 
 ---
 
