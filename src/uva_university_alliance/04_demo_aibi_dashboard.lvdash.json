@@ -751,6 +751,104 @@
         "LIMIT 10;\n",
         "\n"
       ]
+    },
+    {
+      "name": "69ca82a9",
+      "displayName": "Demo Sankey Diagram Data - Matches",
+      "queryLines": [
+        "-- 2022 World Cup bracket Sankey:\n",
+        "-- Round of 16 team -> Quarter-final winner -> Semi-final winner -> Final winner\n",
+        "\n",
+        "WITH matches_2022 AS (\n",
+        "  SELECT\n",
+        "      t.tournament_name,\n",
+        "      t.year,\n",
+        "      m.match_name,\n",
+        "      m.match_date,\n",
+        "      m.stage_name,\n",
+        "      CASE\n",
+        "        WHEN TRIM(LOWER(m.stage_name)) = 'round of 16'    THEN 1\n",
+        "        WHEN TRIM(LOWER(m.stage_name)) = 'quarter-finals' THEN 2\n",
+        "        WHEN TRIM(LOWER(m.stage_name)) = 'semi-finals'    THEN 3\n",
+        "        WHEN TRIM(LOWER(m.stage_name)) = 'final'          THEN 4\n",
+        "        ELSE NULL\n",
+        "      END AS stage_rank,\n",
+        "      m.home_team_name,\n",
+        "      m.away_team_name,\n",
+        "      CASE\n",
+        "        WHEN m.home_team_win = 1 THEN m.home_team_name\n",
+        "        WHEN m.away_team_win = 1 THEN m.away_team_name\n",
+        "        ELSE 'Draw'\n",
+        "      END AS winner\n",
+        "  FROM university_learning.world_cup.matches AS m\n",
+        "  JOIN university_learning.world_cup.tournaments AS t\n",
+        "    ON m.tournament_id = t.tournament_id\n",
+        "  WHERE t.year = 2022\n",
+        "    AND TRIM(LOWER(m.stage_name)) IN (\n",
+        "      'round of 16',\n",
+        "      'quarter-finals',\n",
+        "      'semi-finals',\n",
+        "      'final'\n",
+        "    )\n",
+        "),\n",
+        "\n",
+        "-- Only Round-of-16 matches, and follow their winners forward\n",
+        "bracket_paths AS (\n",
+        "  SELECT\n",
+        "      r.tournament_name,\n",
+        "      r.year,\n",
+        "      r.match_name            AS r16_match_name,\n",
+        "      r.home_team_name,\n",
+        "      r.away_team_name,\n",
+        "      r.winner                AS r16_winner,\n",
+        "\n",
+        "      q.winner                AS qf_winner,\n",
+        "      s.winner                AS sf_winner,\n",
+        "      f.winner                AS final_winner\n",
+        "  FROM matches_2022 r\n",
+        "  LEFT JOIN matches_2022 q\n",
+        "    ON q.year = r.year\n",
+        "   AND q.tournament_name = r.tournament_name\n",
+        "   AND q.stage_rank = 2                      -- Quarter-finals\n",
+        "   AND (q.home_team_name = r.winner\n",
+        "        OR q.away_team_name = r.winner)\n",
+        "\n",
+        "  LEFT JOIN matches_2022 s\n",
+        "    ON s.year = r.year\n",
+        "   AND s.tournament_name = r.tournament_name\n",
+        "   AND s.stage_rank = 3                      -- Semi-finals\n",
+        "   AND (s.home_team_name = q.winner\n",
+        "        OR s.away_team_name = q.winner)\n",
+        "\n",
+        "  LEFT JOIN matches_2022 f\n",
+        "    ON f.year = r.year\n",
+        "   AND f.tournament_name = r.tournament_name\n",
+        "   AND f.stage_rank = 4                      -- Final\n",
+        "   AND (f.home_team_name = s.winner\n",
+        "        OR f.away_team_name = s.winner)\n",
+        "\n",
+        "  WHERE r.stage_rank = 1                     -- Round of 16 only\n",
+        ")\n",
+        "\n",
+        "-- One row per Round-of-16 TEAM, with downstream winners as later stages\n",
+        "SELECT\n",
+        "    home_team_name  AS stage1,   -- Round of 16 team\n",
+        "    qf_winner       AS stage2,   -- QF winner of that bracket slot\n",
+        "    sf_winner       AS stage3,   -- SF winner of that bracket slot\n",
+        "    final_winner    AS stage4,   -- Final winner\n",
+        "    1               AS value\n",
+        "FROM bracket_paths\n",
+        "\n",
+        "UNION ALL\n",
+        "\n",
+        "SELECT\n",
+        "    away_team_name  AS stage1,\n",
+        "    qf_winner       AS stage2,\n",
+        "    sf_winner       AS stage3,\n",
+        "    final_winner    AS stage4,\n",
+        "    1               AS value\n",
+        "FROM bracket_paths;"
+      ]
     }
   ],
   "pages": [
@@ -1285,10 +1383,6 @@
                   "datasetName": "a4bcd414",
                   "fields": [
                     {
-                      "name": "count(*)",
-                      "expression": "COUNT(`*`)"
-                    },
-                    {
                       "name": "country_name",
                       "expression": "`country_name`"
                     }
@@ -1301,26 +1395,10 @@
               "version": 1,
               "frame": {
                 "showTitle": true,
-                "title": "Tournaments Hosted By Country"
+                "title": "Countries of Previous World Cup Tournaments"
               },
               "widgetType": "choropleth-map",
               "encodings": {
-                "color": {
-                  "fieldName": "count(*)",
-                  "legend": {
-                    "hide": true
-                  },
-                  "scale": {
-                    "type": "quantitative",
-                    "colorRamp": {
-                      "mode": "custom-sequential",
-                      "colors": {
-                        "start": "#EFF3FF",
-                        "end": "#005391"
-                      }
-                    }
-                  }
-                },
                 "region": {
                   "regionType": "mapbox-v4-admin",
                   "admin0": {
