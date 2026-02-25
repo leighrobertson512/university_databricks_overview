@@ -22,7 +22,5 @@ This repository contains **Databricks University Alliance** teaching assets: dem
 - **`data/`**: CSV datasets used by the notebooks (World Cup-related tables)
 - **`sample_project_noaa_weather_ingestion/`**: Databricks ETL sample that ingests public NOAA/NWS forecast data into Delta tables
   - Notebooks/scripts: `00_variables.py`, `01_set_up_work.py`, `utils_file.py`, `02_zip_code.py`, `03_weather_ingest.py`
-- **`.databricks/`**: Databricks Asset Bundle / deployment scaffolding
 - **`.cursor/` / `.vscode/`**: editor configuration for working on this repo
-- **`university-databricks-overview/`**: local Python environment directory (if you don’t intend to version this, consider removing it and adding it to `.gitignore`)
 - **`LICENSE`**: repository license
