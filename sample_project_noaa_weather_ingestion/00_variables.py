@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "5"
+# ///
 """
 Centralized configuration variables for NOAA weather data pipeline.
 Update these variables once to configure the entire pipeline.
@@ -7,7 +11,7 @@ Update these variables once to configure the entire pipeline.
 # COMMAND ----------
 
 # Catalog and Schema Configuration
-catalog = 'leigh_robertson_demo'
+catalog = 'serverless_stable_7lg3y6_catalog'
 bronze_schema = 'bronze_noaa'
 silver_schema = 'silver_noaa'
 
@@ -43,7 +47,7 @@ default_country_code = 'US'
 
 # Databricks Workspace Configuration
 # Update this with your workspace host URL
-workspace_host = "https://<your-workspace-host>"
+workspace_host = ""
 
 # COMMAND ----------
 

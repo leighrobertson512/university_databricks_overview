@@ -1,14 +1,23 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "5"
+# ///
 # MAGIC %run ./00_variables
+
+# COMMAND ----------
+
+# DBTITLE 1,Create catalog and schemas
+#spark.sql(f"CREATE CATALOG IF NOT EXISTS {catalog}")
+spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{bronze_schema}")
+spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{silver_schema}")
 
 # COMMAND ----------
 
 #this will build the DDL 
 zip_code_ddl = f"""
-CREATE CATALOG IF NOT EXISTS {catalog};
-CREATE SCHEMA IF NOT EXISTS {catalog}.{bronze_schema};
 CREATE TABLE IF NOT EXISTS {zip_code_table_name} (
-    post_code STRING PRIMARY KEY,
+    post_code STRING PRIMARY KEY ,
     country STRING,
     country_abbreviation STRING,
     latitude DOUBLE,
@@ -20,7 +29,7 @@ CREATE TABLE IF NOT EXISTS {zip_code_table_name} (
 )
 CLUSTER BY AUTO;
 """
-#spark.sql(zip_code_ddl)
+print(zip_code_ddl)
 
 
 # COMMAND ----------
@@ -52,12 +61,11 @@ CLUSTER BY AUTO;
 forecasts_pk_sql = f"ALTER TABLE {forecast_table_name} ADD CONSTRAINT forecasts_pk PRIMARY KEY (post_code, startTime);"
 forecasts_fk_sql = f"ALTER TABLE {forecast_table_name} ADD CONSTRAINT forecasts_fk FOREIGN KEY (post_code) REFERENCES {zip_code_table_name}(post_code);"
 #spark.sql(forecasts_pk_sql)
-#spark.sql(forecasts_fk_sql)
+spark.sql(forecasts_fk_sql)
 
 # COMMAND ----------
 
 silver_table_ddl = f"""
-CREATE SCHEMA IF NOT EXISTS {catalog}.{silver_schema};
 CREATE TABLE IF NOT EXISTS {forecasts_expanded_table_name} (
     post_code STRING NOT NULL,
     number LONG,
@@ -86,8 +94,8 @@ CLUSTER BY AUTO;
 #spark.sql(silver_table_ddl)
 forecasts_silver_pk_sql = f"ALTER TABLE {forecasts_expanded_table_name} ADD CONSTRAINT forecasts_pk PRIMARY KEY (post_code, startTime);"
 forecasts_silver_fk_sql = f"ALTER TABLE {forecasts_expanded_table_name} ADD CONSTRAINT forecasts_fk FOREIGN KEY (post_code) REFERENCES {zip_code_table_name}(post_code);"
-#spark.sql(forecasts_silver_pk_sql)
-#spark.sql(forecasts_silver_fk_sql)
+spark.sql(forecasts_silver_pk_sql)
+spark.sql(forecasts_silver_fk_sql)
 
 # COMMAND ----------
 

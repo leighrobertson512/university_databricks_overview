@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "5"
+# ///
 """
 https://www.zippopotam.us/
 """
@@ -105,7 +109,7 @@ def load_and_clean_zip_code_data(df):
 # COMMAND ----------
 
 def load_zip_codes(start, end):
-    for zip_code in range(start, end + 1):
+    for zip_code in range(int(start), int(end) + 1):
         zip_code = (f'{zip_code:05}')  # Format zip code to be 5 digits
         print(f'loading zip code: {zip_code}')
         df = get_zip_code_data(zip_code)
