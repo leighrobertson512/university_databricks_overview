@@ -1,4 +1,11 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "5"
+# dependencies = [
+#   "noaa_sdk",
+# ]
+# ///
 #Historical weather data: https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/by_year/
 
 # COMMAND ----------
@@ -63,6 +70,24 @@ optimize_sql = f"OPTIMIZE {forecast_table_name};"
 vacuum_sql = f"VACUUM {forecast_table_name};"
 spark.sql(optimize_sql)
 spark.sql(vacuum_sql)
+
+# COMMAND ----------
+
+# DBTITLE 1,Load forecasts for hardcoded zip codes
+zip_codes = ['85003', '48201', '28202', '43216', '97205', '15222', '75099', '53203']
+
+for postal_code in zip_codes:
+    try:
+        get_and_load_forecasts(postal_code, default_country_code)
+    except Exception as e:
+        print(f'Failed to load forecasts for {postal_code}: {e}')
+
+# COMMAND ----------
+
+# DBTITLE 1,Total record count - bronze forecasts
+zip_codes = "'85003','48201','28202','43216','97205','15222','75099','53203'"
+count_df = spark.sql(f"SELECT COUNT(*) AS total_records FROM {forecast_table_name} WHERE post_code IN ({zip_codes})")
+display(count_df)
 
 # COMMAND ----------
 

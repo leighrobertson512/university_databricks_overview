@@ -124,4 +124,20 @@ load_zip_codes(start_zip, end_zip)
 
 # COMMAND ----------
 
+# DBTITLE 1,Overwrite zip_code table from volume
+from pyspark.sql.functions import col, lpad
 
+# Read CSV data from volume
+df = spark.read.csv("/Volumes/serverless_stable_7lg3y6_catalog/bronze_noaa/sample_table", header=True, inferSchema=True)
+
+# Cast post_code to zero-padded string and drop _rescued_data
+df_clean = (
+    df.withColumn("post_code", lpad(col("post_code").cast("string"), 5, "0"))
+      .drop("_rescued_data")
+)
+
+# Overwrite the bronze zip_code table using INSERT OVERWRITE (preserves table metadata)
+df_clean.createOrReplaceTempView("volume_zip_data")
+spark.sql(f"INSERT OVERWRITE {zip_code_table_name} SELECT * FROM volume_zip_data")
+
+print(f"Overwrote {zip_code_table_name} with {df_clean.count()} rows")

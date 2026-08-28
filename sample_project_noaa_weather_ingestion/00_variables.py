@@ -33,7 +33,7 @@ forecasts_expanded_table_name = f"{catalog}.{silver_schema}.{forecasts_expanded_
 
 # Zip Code Loading Configuration
 # Range for country zip codes is defined here: https://zippopotam.us/
-start_zip = "00210"
+start_zip = "10000" #staring zip = 00210
 end_zip = "99950"
 
 
@@ -51,4 +51,4 @@ workspace_host = ""
 
 # COMMAND ----------
 
-
+89950/10
