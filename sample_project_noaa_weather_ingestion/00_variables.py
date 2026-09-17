@@ -11,7 +11,7 @@ Update these variables once to configure the entire pipeline.
 # COMMAND ----------
 
 # Catalog and Schema Configuration
-catalog = 'serverless_stable_7lg3y6_catalog'
+catalog = 'leigh_robertson_fevm_catalog'
 bronze_schema = 'bronze_noaa'
 silver_schema = 'silver_noaa'
 
@@ -48,7 +48,3 @@ default_country_code = 'US'
 # Databricks Workspace Configuration
 # Update this with your workspace host URL
 workspace_host = ""
-
-# COMMAND ----------
-
-89950/10

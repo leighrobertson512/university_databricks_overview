@@ -18,8 +18,10 @@
 
 # COMMAND ----------
 
+# DBTITLE 1,Cell 4
 from noaa_sdk import NOAA
 import pandas as pd
+import time
 from pyspark.sql.functions import lit, current_timestamp
 
 # COMMAND ----------
@@ -49,6 +51,7 @@ def get_and_load_forecasts(postal_code, country_code):
 
 # COMMAND ----------
 
+# DBTITLE 1,Cell 8
 state = dbutils.widgets.get('state')
 state_forecasts = f"""
 SELECT distinct post_code
@@ -60,8 +63,10 @@ for row in df.collect():
     postal_code = row['post_code']
     try:
         get_and_load_forecasts(postal_code, default_country_code)
+        time.sleep(2)
     except Exception as e:
         print(f'Failed to load forecasts for {postal_code}: {e}')
+        time.sleep(4)
 
 # COMMAND ----------
 
@@ -74,21 +79,21 @@ spark.sql(vacuum_sql)
 # COMMAND ----------
 
 # DBTITLE 1,Load forecasts for hardcoded zip codes
-zip_codes = ['85003', '48201', '28202', '43216', '97205', '15222', '75099', '53203']
+# zip_codes = ['85003', '48201', '28202', '43216', '97205', '15222', '75099', '53203']
 
-for postal_code in zip_codes:
-    try:
-        get_and_load_forecasts(postal_code, default_country_code)
-    except Exception as e:
-        print(f'Failed to load forecasts for {postal_code}: {e}')
+# for postal_code in zip_codes:
+#     try:
+#         get_and_load_forecasts(postal_code, default_country_code)
+#         time.sleep(2)
+#     except Exception as e:
+#         print(f'Failed to load forecasts for {postal_code}: {e}')
 
 # COMMAND ----------
 
 # DBTITLE 1,Total record count - bronze forecasts
-zip_codes = "'85003','48201','28202','43216','97205','15222','75099','53203'"
-count_df = spark.sql(f"SELECT COUNT(*) AS total_records FROM {forecast_table_name} WHERE post_code IN ({zip_codes})")
-display(count_df)
+# zip_codes = "'85003','48201','28202','43216','97205','15222','75099','53203'"
+# count_df = spark.sql(f"SELECT COUNT(*) AS total_records FROM {forecast_table_name} WHERE post_code IN ({zip_codes})")
+# display(count_df)
 
 # COMMAND ----------
-
 

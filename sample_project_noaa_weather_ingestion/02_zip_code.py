@@ -17,6 +17,32 @@ https://www.zippopotam.us/
 
 # COMMAND ----------
 
+
+"""
+For a faster process
+1. upload the zip_code.csv volume and read then write to the table
+
+"""
+from pyspark.sql.functions import col, lpad
+
+volume_path = "/Volumes/leigh_robertson_fevm_catalog/bronze_noaa/raw_data/zip_code.csv"
+
+# Read CSV data from volume
+df = spark.read.csv(volume_path, header=True, inferSchema=True)
+
+# Cast post_code to zero-padded string and drop _rescued_data if present
+df_clean = df.withColumn("post_code", lpad(col("post_code").cast("string"), 5, "0"))
+if "_rescued_data" in df_clean.columns:
+    df_clean = df_clean.drop("_rescued_data")
+
+# Append to the zip_code table in bronze_noaa schema
+target_table = "leigh_robertson_fevm_catalog.bronze_noaa.zip_code"
+df_clean.write.mode("append").saveAsTable(target_table)
+
+print(f"Appended {df_clean.count()} rows to {target_table}")
+
+# COMMAND ----------
+
 import requests
 import pandas as pd
 import time

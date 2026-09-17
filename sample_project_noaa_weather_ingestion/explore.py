@@ -4,15 +4,13 @@
 # environment_version = "5"
 # ///
 # MAGIC %sql 
-# MAGIC SELECT state_abbreviation,
-# MAGIC count(*)
-# MAGIC FROM serverless_stable_7lg3y6_catalog.bronze_noaa.zip_code
-# MAGIC GROUP BY ALL 
+# MAGIC SELECT count(*)
+# MAGIC FROM leigh_robertson_fevm_catalog.bronze_noaa.forecasts
 
 # COMMAND ----------
 
 # MAGIC %sql 
-# MAGIC OPTIMIZE serverless_stable_7lg3y6_catalog.bronze_noaa.zip_code;
+# MAGIC OPTIMIZE leigh_robertson_fevm_catalog.bronze_noaa.zip_code;
 
 # COMMAND ----------
 
@@ -28,8 +26,10 @@
 # COMMAND ----------
 
 # MAGIC %sql 
-# MAGIC SELECT count(*)
-# MAGIC FROM serverless_stable_7lg3y6_catalog.silver_noaa.forecasts_expanded
+# MAGIC SELECT max(forecastDateLocal)
+# MAGIC FROM leigh_robertson_fevm_catalog.silver_noaa.forecasts_expanded
+# MAGIC --GROUP BY ALL 
+# MAGIC --WHERE audit_update_ts >= '2026-09-16T18:38:16.350+00:00'
 
 # COMMAND ----------
 

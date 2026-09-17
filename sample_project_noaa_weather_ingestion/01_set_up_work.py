@@ -57,11 +57,11 @@ CREATE TABLE IF NOT EXISTS {forecast_table_name} (
 )
 CLUSTER BY AUTO;
 """
-#spark.sql(forecasts_ddl)
-forecasts_pk_sql = f"ALTER TABLE {forecast_table_name} ADD CONSTRAINT forecasts_pk PRIMARY KEY (post_code, startTime);"
-forecasts_fk_sql = f"ALTER TABLE {forecast_table_name} ADD CONSTRAINT forecasts_fk FOREIGN KEY (post_code) REFERENCES {zip_code_table_name}(post_code);"
-#spark.sql(forecasts_pk_sql)
-spark.sql(forecasts_fk_sql)
+# spark.sql(forecasts_ddl)
+# forecasts_pk_sql = f"ALTER TABLE {forecast_table_name} ADD CONSTRAINT forecasts_pk PRIMARY KEY (post_code, startTime);"
+# forecasts_fk_sql = f"ALTER TABLE {forecast_table_name} ADD CONSTRAINT forecasts_fk FOREIGN KEY (post_code) REFERENCES {zip_code_table_name}(post_code);"
+# spark.sql(forecasts_pk_sql)
+# spark.sql(forecasts_fk_sql)
 
 # COMMAND ----------
 
@@ -91,12 +91,11 @@ CREATE TABLE IF NOT EXISTS {forecasts_expanded_table_name} (
 )
 CLUSTER BY AUTO;
 """
-#spark.sql(silver_table_ddl)
+spark.sql(silver_table_ddl)
 forecasts_silver_pk_sql = f"ALTER TABLE {forecasts_expanded_table_name} ADD CONSTRAINT forecasts_pk PRIMARY KEY (post_code, startTime);"
 forecasts_silver_fk_sql = f"ALTER TABLE {forecasts_expanded_table_name} ADD CONSTRAINT forecasts_fk FOREIGN KEY (post_code) REFERENCES {zip_code_table_name}(post_code);"
 spark.sql(forecasts_silver_pk_sql)
 spark.sql(forecasts_silver_fk_sql)
 
 # COMMAND ----------
-
 

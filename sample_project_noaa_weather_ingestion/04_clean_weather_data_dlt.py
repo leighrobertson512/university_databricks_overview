@@ -8,7 +8,7 @@
 # COMMAND ----------
 
 #define these variables up front
-catalog = 'serverless_stable_7lg3y6_catalog'
+catalog = 'leigh_robertson_fevm_catalog'
 bronze_schema = 'bronze_noaa'
 silver_schema = 'silver_noaa'
 
@@ -31,7 +31,7 @@ def bronze_forecasts_preprocessed():
         #dlt.read_stream
         spark.readStream
         .option("readChangeFeed", "true")
-        .option("startingVersion", 22)
+        .option("startingVersion", 0)
         #.option("maxBytesPerTrigger", "10g")
         .table(f'{catalog}.{bronze_schema}.{forecast_table_name}')
         .withColumn("timezoneOffset", regexp_extract(col("startTime"), r"([+-]\d{2}:\d{2})$", 1))
@@ -74,5 +74,4 @@ dlt.apply_changes(
 )
 
 # COMMAND ----------
-
 
